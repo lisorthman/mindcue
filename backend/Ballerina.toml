@@ -6,3 +6,7 @@ distribution = "2201.12.7"
 
 [build-options]
 observabilityIncluded = true
+
+[config]
+weather_key = "e4a3d04dc3699ab5d0a6b93bfcba7b83"
+GEMINI_API_KEY = "AIzaSyDkv_75BW8OcH7rvPE1EctHAQCCEJObmIs"
