@@ -1,7 +1,16 @@
 // src/services/api.js
-const BASE_URL = "http://localhost:9090";
-
-export const fetchRecommendations = async (mood) => {
-  const res = await fetch(`${BASE_URL}/recommendation?mood=${mood}`);
-  return await res.json();
+export const getCurrentLocation = () => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported by your browser'));
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position),
+        (error) => reject(error),
+        { enableHighAccuracy: true }
+      );
+    }
+  });
 };
+
+// You can add more API functions here as needed
