@@ -103,6 +103,7 @@ function processCity(string rawCity) returns json|error {
         city: city,
         weather: description,
         temperature: temp,
+        "rawWeather": weatherJson,
         ai_suggestion: aiSuggestion,
         playlist_keyword: playlistKeyword,
         playlist_link: playlistLink

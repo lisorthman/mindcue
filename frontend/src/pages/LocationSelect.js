@@ -50,7 +50,7 @@ const LocationSelect = () => {
   const handleContinue = () => {
   if (selectedCity) {
     localStorage.setItem('userLocation', selectedCity);
-    navigate('/home');  // changed from '/home' to '/entrance'
+    navigate('/entrance');  // changed from '/home' to '/entrance'
   } else {
     alert('Please select a city from the list.');
   }
