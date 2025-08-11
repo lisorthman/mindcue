@@ -10,3 +10,13 @@ observabilityIncluded = true
 [config]
 weather_key = "e4a3d04dc3699ab5d0a6b93bfcba7b83"
 GEMINI_API_KEY = "AIzaSyDkv_75BW8OcH7rvPE1EctHAQCCEJObmIs"
+
+[[dependency]]
+org = "ballerina"
+name = "crypto"
+version = "1.6.1"
+
+[[dependency]]
+org = "ballerina"
+name = "util"
+version = "1.5.0" # or whichever matches your version

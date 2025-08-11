@@ -1,0 +1,125 @@
+.home-container {
+  max-width: 700px;
+  margin: auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+  background-color: #fff;
+}
+
+.weather-box,
+.recommendation-box,
+.moodcheck-box {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  background-color: #fafafa;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.weather-box:hover,
+.recommendation-box:hover,
+.moodcheck-box:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.home-container h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #1DB954; /* Spotify green accent */
+  font-weight: 700;
+}
+
+.home-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.weather-info {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.weather-icon {
+  font-size: 4rem;
+}
+
+.temperature {
+  margin-left: auto;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1DB954;
+}
+
+.ai-suggestion h3 {
+  border-bottom: 3px solid #1DB954;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  color: #1DB954;
+  font-weight: 600;
+}
+
+.ai-suggestion ul {
+  padding-left: 1.2rem;
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.playlist-link {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1DB954;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  transition: color 0.3s ease;
+}
+
+.playlist-link:hover {
+  text-decoration: underline;
+  color: #17a44f;
+}
+
+.error-message {
+  color: #e74c3c;
+  text-align: center;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #1DB954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .weather-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .temperature {
+    margin-left: 0;
+    font-size: 2.5rem;
+    margin-top: 1rem;
+  }
+}

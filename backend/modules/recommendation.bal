@@ -4,59 +4,179 @@ import ballerina/io;
 configurable string weather_base = "https://api.openweathermap.org/data/2.5";
 configurable string weather_key = "e4a3d04dc3699ab5d0a6b93bfcba7b83";
 configurable string GEMINI_API_KEY = "AIzaSyCa1w9FPEYTpSAM1XratpoOlcoH9eVFU0c";
+configurable string SPOTIFY_CLIENT_ID = "feae4f97b7984a78a6feca4d0464b947";
+configurable string SPOTIFY_CLIENT_SECRET = "8557780c00564669958c33d663358763";
 
-service /recommendation on new http:Listener(9091) {
+service / on new http:Listener(9091) {
 
-    resource function get [string city]() returns json|error {
-        // 1. Fetch weather data
-        http:Client weatherClient = check new(weather_base);
-        string path = "/weather?q=" + city + "&appid=" + weather_key + "&units=metric";
-        http:Response weatherRes = check weatherClient->get(path);
-        json weatherJson = check weatherRes.getJsonPayload();
+    resource function get recommendation/[string rawCity]() returns http:Response|error {
+        http:Response res = new;
 
-        io:println("DEBUG Weather JSON: ", weatherJson.toJsonString());
+        // Set CORS headers
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-        // 2. Check for API error code
-        if weatherJson is map<json> {
-            if weatherJson.hasKey("cod") {
-                var codVal = weatherJson["cod"];
-                if codVal is int && codVal != 200 {
-                    string msg = "OpenWeather API error: ";
-                    if weatherJson.hasKey("message") {
-                        var msgVal = weatherJson["message"];
-                        if msgVal is string {
-                            msg += msgVal;
-                        }
-                    }
-                    return error(msg);
-                }
-            }
+        json|error result = processCity(rawCity);
+
+        if result is error {
+            res.statusCode = 500;
+            res.setPayload({"error": result.message()});
+        } else {
+            res.setPayload(result);
         }
 
-        // 3. Extract weather description and temperature
-        string description = check getStringValue(weatherJson, ["weather", 0, "description"]);
-        float temp = check getFloatValue(weatherJson, ["main", "temp"]);
+        return res;
+    }
 
-        io:println("DEBUG Extracted description: ", description);
-        io:println("DEBUG Extracted temperature: ", temp.toString());
-
-        // 4. Compose prompt for Gemini AI
-        string prompt = "Weather in " + city + " is " + description + 
-                        " and " + temp.toString() + "°C. Suggest a suitable activity and a Spotify playlist.";
-
-        // 5. Call Gemini API to get AI recommendation
-        string aiSuggestion = check callGeminiAPI(prompt);
-
-        return {
-            city: city,
-            weather: description,
-            temperature: temp,
-            ai_suggestion: aiSuggestion
-        };
+    // Optional: CORS preflight OPTIONS support
+    resource function options recommendation/[string rawCity]() returns http:Response {
+        http:Response res = new;
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        return res;
     }
 }
 
-// Helper: Traverse JSON and get string value safely
+function processCity(string rawCity) returns json|error {
+    string city = rawCity;
+    int? commaIndex = city.indexOf(",");
+    if commaIndex is int {
+        city = city.substring(0, commaIndex).trim();
+    } else {
+        city = city.trim();
+    }
+    io:println("Received city: ", rawCity, " Sanitized to: ", city);
+
+    http:Client weatherClient = check new(weather_base);
+    string path = "/weather?q=" + city + "&appid=" + weather_key + "&units=metric";
+
+    http:Response weatherRes = check weatherClient->get(path);
+    json weatherJson = check weatherRes.getJsonPayload();
+
+    io:println("Weather JSON: ", weatherJson.toJsonString());
+
+    if weatherJson is map<json> {
+        json? weatherField = weatherJson["weather"];
+        if !(weatherField is json[] && weatherField.length() > 0) {
+            return error("Missing or empty 'weather' field in API response for city: " + city);
+        }
+
+        json? mainField = weatherJson["main"];
+        if !(mainField is map<json>) {
+            return error("Missing 'main' field in API response for city: " + city);
+        }
+
+    } else {
+        return error("weatherJson is not a JSON object");
+    }
+
+    string description = check getStringValue(weatherJson, ["weather", 0, "description"]);
+    float temp = check getFloatValue(weatherJson, ["main", "temp"]);
+
+    // Temperature-based playlist keyword logic
+    string playlistKeyword;
+    if (temp >= 30.0) {
+        playlistKeyword = "summer vibes";
+    } else if (temp >= 20.0 && temp < 30.0) {
+        playlistKeyword = "upbeat";
+    } else if (temp >= 10.0 && temp < 20.0) {
+        playlistKeyword = "cozy";
+    } else if (temp < 10.0) {
+        playlistKeyword = "warm acoustic";
+    } else {
+        // Default fallback
+        playlistKeyword = "chill";
+    }
+
+    string prompt = "Weather in " + city + " is " + description + 
+                    " and " + temp.toString() + "°C. Suggest a suitable activity.";
+
+    string aiSuggestion = check callGeminiAPI(prompt);
+
+    // Use temperature-based playlistKeyword instead of Gemini's suggestion for playlist
+    string token = check getSpotifyAccessToken();
+    string playlistLink = check searchSpotifyPlaylist(playlistKeyword, token);
+
+    return {
+        city: city,
+        weather: description,
+        temperature: temp,
+        ai_suggestion: aiSuggestion,
+        playlist_keyword: playlistKeyword,
+        playlist_link: playlistLink
+    };
+}
+
+
+function base64Encode(string input) returns string {
+    string base64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    byte[] bytes = input.toBytes();
+    int len = bytes.length();
+    string output = "";
+    int i = 0;
+
+    while i < len {
+        int byte1 = <int>bytes[i];
+        int byte2 = i + 1 < len ? <int>bytes[i + 1] : 0;
+        int byte3 = i + 2 < len ? <int>bytes[i + 2] : 0;
+
+        int enc1 = byte1 >> 2;
+        int enc2 = ((byte1 & 3) << 4) | (byte2 >> 4);
+        int enc3 = ((byte2 & 15) << 2) | (byte3 >> 6);
+        int enc4 = byte3 & 63;
+
+        output += base64chars.substring(enc1, enc1 + 1);
+        output += base64chars.substring(enc2, enc2 + 1);
+
+        if (i + 1 < len) {
+            output += base64chars.substring(enc3, enc3 + 1);
+        } else {
+            output += "=";
+        }
+
+        if (i + 2 < len) {
+            output += base64chars.substring(enc4, enc4 + 1);
+        } else {
+            output += "=";
+        }
+
+        i += 3;
+    }
+    return output;
+}
+
+
+function getSpotifyAccessToken() returns string|error {
+    http:Client tokenClient = check new ("https://accounts.spotify.com");
+
+    // Prepare form body as URL-encoded string, not map!
+    string formBody = "grant_type=client_credentials";
+
+    string credentials = SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET;
+
+    // base64 encode credentials
+    string encodedCredentials = base64Encode(credentials);
+    string authHeader = "Basic " + encodedCredentials;
+
+    http:Request req = new;
+    req.setHeader("Authorization", authHeader);
+    req.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    req.setPayload(formBody);
+
+    http:Response res = check tokenClient->post("/api/token", req);
+
+    json response = check res.getJsonPayload();
+
+    if response is map<json> && response["access_token"] is string {
+        return <string>response["access_token"];
+    }
+
+    return error("Spotify access token not found in response");
+}
+
+// Helper: Extract nested string
 function getStringValue(json j, any[] path) returns string|error {
     var current = j;
     foreach any key in path {
@@ -82,7 +202,7 @@ function getStringValue(json j, any[] path) returns string|error {
     return error("Value is not a string");
 }
 
-// Helper: Traverse JSON and get float value safely, with robust parsing
+// Helper: Extract nested float
 function getFloatValue(json j, any[] path) returns float|error {
     var current = j;
     foreach any key in path {
@@ -111,7 +231,6 @@ function getFloatValue(json j, any[] path) returns float|error {
     return error("Value is not a number");
 }
 
-// Convert JSON number or string to float robustly
 function jsonToFloat(json val) returns float|error {
     io:println("DEBUG jsonToFloat received: ", val.toJsonString());
 
@@ -125,9 +244,7 @@ function jsonToFloat(json val) returns float|error {
             return parsed;
         }
     } else {
-        // Fallback: try parsing string form of JSON value
         string s = val.toJsonString();
-        // Remove surrounding quotes if any (e.g., if JSON string)
         if s.startsWith("\"") && s.endsWith("\"") {
             s = s.substring(1, s.length() - 1);
         }
@@ -136,11 +253,10 @@ function jsonToFloat(json val) returns float|error {
             return parsed;
         }
     }
-
     return error("Cannot convert json to float");
 }
 
-// Call Gemini API with prompt, return suggestion string
+// Call Gemini API
 function callGeminiAPI(string promptText) returns string|error {
     string endpoint = "/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
     http:Client geminiClient = check new ("https://generativelanguage.googleapis.com");
@@ -157,51 +273,157 @@ function callGeminiAPI(string promptText) returns string|error {
     };
 
     req.setPayload(payload);
-
     http:Response response = check geminiClient->post(endpoint, req);
     json responseJson = check response.getJsonPayload();
 
     io:println("DEBUG Gemini API response: ", responseJson.toJsonString());
 
-    // Validate if response contains what we expect
     if responseJson is map<json> {
-    json? candidates = responseJson["candidates"];
-    if candidates is json[] && candidates.length() > 0 {
-        json firstCandidate = candidates[0];
-        if firstCandidate is map<json> {
-            json? content = firstCandidate["content"];
-            if content is map<json> {
-                json? parts = content["parts"];
-                if parts is json[] && parts.length() > 0 {
-                    json firstPart = parts[0];
-                    if firstPart is map<json> {
-                        json? textVal = firstPart["text"];
-                        if textVal is string {
-                            return textVal;
+        json? candidates = responseJson["candidates"];
+        if candidates is json[] && candidates.length() > 0 {
+            json firstCandidate = candidates[0];
+            if firstCandidate is map<json> {
+                json? content = firstCandidate["content"];
+                if content is map<json> {
+                    json? parts = content["parts"];
+                    if parts is json[] && parts.length() > 0 {
+                        json firstPart = parts[0];
+                        if firstPart is map<json> {
+                            json? textVal = firstPart["text"];
+                            if textVal is string {
+                                return textVal;
+                            } else {
+                                return error("text field is not string");
+                            }
                         } else {
-                            return error("text field is not string");
+                            return error("parts[0] is not a map");
                         }
                     } else {
-                        return error("parts[0] is not a map");
+                        return error("parts is not array or empty");
                     }
                 } else {
-                    return error("parts is not array or empty");
+                    return error("content is not a map");
                 }
             } else {
-                return error("content is not a map");
+                return error("candidate is not a map");
             }
         } else {
-            return error("candidate is not a map");
+            return error("No candidates array found");
         }
     } else {
-        return error("No candidates array found");
+        return error("Response is not a map");
     }
-} else {
-    return error("Response is not a map");
+}
+
+function splitString(string str, string delimiter) returns string[] {
+    string[] result = [];
+    int startIndex = 0;
+    int delimLen = delimiter.length();
+
+    while (true) {
+        // Find next occurrence of delimiter starting from startIndex
+        int? index = str.indexOf(delimiter, startIndex);
+
+        if index is int {
+            // Extract substring from startIndex up to delimiter
+            string part = str.substring(startIndex, index);
+            result.push(part);
+            // Update startIndex to after the delimiter
+            startIndex = index + delimLen;
+        } else {
+            // No more delimiter found, push remaining substring and break
+            string part = str.substring(startIndex);
+            result.push(part);
+            break;
+        }
+    }
+    return result;
 }
 
 
 
+
+// Extract keyword from Gemini suggestion
+function extractKeywordFromGeminiText(string text) returns string {
+    int? index = text.toLowerAscii().indexOf("playlist");
+    if index is int {
+        string sub = text.substring(index);
+        int? quoteStartOpt = sub.indexOf("\"");
+        if quoteStartOpt is int {
+            int? quoteEndOpt = sub.indexOf("\"", quoteStartOpt + 1);
+            if quoteEndOpt is int {
+                return sub.substring(quoteStartOpt + 1, quoteEndOpt);
+            }
+        }
+    }
+    return "chill"; // fallback
 }
 
 
+
+
+// Spotify API Call
+// Manual simple string replace function (since no built-in replace)
+// Helper function to replace spaces with %20 (URL encode spaces)
+function replaceSpaceWithPercent20(string input) returns string {
+    string output = "";
+    foreach int i in 0 ..< input.length() {
+        string c = input.substring(i, i + 1);
+        if c == " " {
+            output += "%20";
+        } else {
+            output += c;
+        }
+    }
+    return output;
+}
+
+function searchSpotifyPlaylist(string keyword, string token) returns string|error {
+    // Use custom replace function to encode spaces
+    string encodedKeyword = replaceSpaceWithPercent20(keyword);
+
+    string searchUrl = "/v1/search?q=" + encodedKeyword + "&type=playlist&limit=5";
+
+    // Create HTTP client without headers (base URL only)
+    http:Client spotifyClient = check new ("https://api.spotify.com");
+
+    // Create headers map to pass authorization
+    map<string|string[]> headers = {
+        "Authorization": "Bearer " + token
+    };
+
+    // Send GET request with URL and headers map
+    http:Response res = check spotifyClient->get(searchUrl, headers);
+
+    // Get JSON payload safely
+    json|error payloadOrErr = res.getJsonPayload();
+    if payloadOrErr is error {
+        return payloadOrErr;
+    }
+    json payload = payloadOrErr;
+
+
+    
+
+    // Safely extract playlists -> items -> external_urls -> spotify link
+    if payload is map<json> {
+        json? playlistsOpt = payload["playlists"];
+        if playlistsOpt is map<json> {
+            json? itemsOpt = playlistsOpt["items"];
+            if itemsOpt is json[] && itemsOpt.length() > 0 {
+                json firstItem = itemsOpt[0];
+                if firstItem is map<json> {
+                    json? extUrlsOpt = firstItem["external_urls"];
+                    if extUrlsOpt is map<json> {
+                        json? spotifyUrlOpt = extUrlsOpt["spotify"];
+                        if spotifyUrlOpt is string {
+                            return spotifyUrlOpt;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return "No playlist found"; 
+    }
