@@ -99,6 +99,11 @@ function processCity(string rawCity) returns json|error {
     string token = check getSpotifyAccessToken();
     string playlistLink = check searchSpotifyPlaylist(playlistKeyword, token);
 
+    // Fetch Sri Lankan news here
+    json slNews = check getSriLankaNews();
+    io:println("DEBUG Sri Lanka news: ", slNews.toJsonString());
+
+
     return {
         city: city,
         weather: description,
@@ -106,7 +111,8 @@ function processCity(string rawCity) returns json|error {
         "rawWeather": weatherJson,
         ai_suggestion: aiSuggestion,
         playlist_keyword: playlistKeyword,
-        playlist_link: playlistLink
+        playlist_link: playlistLink,
+        sri_lanka_news: slNews
     };
 }
 
@@ -359,6 +365,44 @@ function extractKeywordFromGeminiText(string text) returns string {
     }
     return "chill"; // fallback
 }
+
+function getSriLankaNews() returns json|error {
+    string newsApiKey = "pub_596fef11078040f393bf7c135082fc5b";
+
+    http:Client newsClient = check new("https://newsdata.io/api/1");
+
+    string path = string `/news?apikey=${newsApiKey}&country=lk&language=en`;
+
+    http:Response res = check newsClient->get(path);
+
+    json newsData = check res.getJsonPayload();
+
+    json[] topNews = [];
+
+    if newsData is map<json> {
+        json results = newsData["results"];
+        if results is json[] {
+            int maxArticles = results.length() < 5 ? results.length() : 5;
+
+            foreach int i in 0 ..< maxArticles {
+                json article = results[i];
+                if article is map<json> {
+                    topNews.push({
+                        title: article["title"] ?: "",
+                        link: article["link"] ?: ""
+                    });
+                }
+            }
+        } else {
+            return error("No results array in news data");
+        }
+    } else {
+        return error("News data is not a JSON object");
+    }
+
+    return topNews;
+}
+
 
 
 

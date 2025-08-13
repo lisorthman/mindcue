@@ -12,18 +12,22 @@ const weatherIcons = {
 const Entrance = () => {
   const [location, setLocation] = useState("");
   const [weatherData, setWeatherData] = useState(null);
+  const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedLocation = localStorage.getItem("userLocation");
-    if (storedLocation) {
-      setLocation(storedLocation);
-      fetchWeather(storedLocation);
-    }
-  }, []);
+  const storedLocation = localStorage.getItem("userLocation");
+  if (storedLocation) {
+    setLocation(storedLocation);
+    fetchWeather(storedLocation);
+    fetchNews(); // now always fetches Sri Lanka news
+  }
+}, []);
 
+
+  // Fetch weather data
   const fetchWeather = async (loc) => {
     try {
       setLoading(true);
@@ -49,13 +53,33 @@ const Entrance = () => {
     }
   };
 
-  if (!location) return <p>Please select a location first.</p>;
 
+// Fetch news data
+const fetchNews = async () => {
+  try {
+    const res = await fetch("http://localhost:9092/news");
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();  // no ": any"
+
+
+    // Only set if it's an array
+    setNewsData(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("News fetch error:", err);
+    setNewsData([]); // optional fallback
+  }
+};
+
+
+  if (!location) return <p>Please select a location first.</p>;
   if (loading) return <p>Loading weather data...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!weatherData) return null;
 
-  // Use rawWeather for detailed info
   const weatherDesc =
     weatherData?.rawWeather?.weather?.[0]?.description || "N/A";
   const weatherMain = weatherData?.rawWeather?.weather?.[0]?.main || "";
@@ -71,6 +95,7 @@ const Entrance = () => {
     <div style={{ maxWidth: 700, margin: "auto", padding: 20 }}>
       <h1>Weather in {cityName}</h1>
 
+      {/* WEATHER CARD */}
       <div
         style={{
           border: "1px solid #ddd",
@@ -109,6 +134,7 @@ const Entrance = () => {
         </div>
       </div>
 
+      {/* WEATHER DETAILS */}
       <div
         style={{
           display: "flex",
@@ -127,6 +153,31 @@ const Entrance = () => {
         </div>
       </div>
 
+      {/* NEWS SECTION */}
+      <div style={{ marginTop: 30 }}>
+        <h2>Latest Sri Lanka News</h2>
+        {newsData.length > 0 ? (
+          <ul style={{ paddingLeft: 20 }}>
+            {newsData.map((article, index) => (
+              <li key={index} style={{ marginBottom: 10 }}>
+                <a href={article.link ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#1DB954", fontWeight: "bold" }}
+                >
+                  {article.title ?? "No title"}
+                </a>
+                <p style={{ margin: "5px 0", color: "#555" }}>
+                  {article.description}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No news found for this location.</p>
+        )}
+      </div>
+
       <button
         style={{
           marginTop: 20,
@@ -139,7 +190,7 @@ const Entrance = () => {
           fontWeight: "600",
           fontSize: 16,
         }}
-        onClick={() => navigate("/home")} // Navigate to Home page
+        onClick={() => navigate("/home")}
       >
         Auto Recommendation
       </button>
