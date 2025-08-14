@@ -1,34 +1,217 @@
+/* LocationSelect.css */
 .location-container {
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to bottom, #cceeff, #ffffff);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  animation: gradientBG 15s ease infinite;
+  background-size: 400% 400%;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .location-card {
-  background-color: #fff;
-  padding: 2rem 3rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.location-card input {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 40px;
   width: 100%;
-  padding: 0.75rem;
-  margin-top: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  max-width: 500px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.location-card button {
-  margin-top: 1.5rem;
-  padding: 0.75rem 2rem;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 8px;
+.location-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.welcome-title {
+  color: #2d3748;
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.welcome-subtitle {
+  color: #718096;
+  margin-bottom: 30px;
   font-size: 1rem;
+}
+
+.search-container {
+  margin: 25px 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.search-container.focused {
+  transform: scale(1.02);
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  color: #a0aec0;
+  z-index: 1;
+}
+
+.spinner {
+  position: absolute;
+  right: 15px;
+  color: #a0aec0;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.location-input {
+  width: 100%;
+  padding: 15px 15px 15px 45px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
+  color: #2d3748;
+}
+
+.location-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.continue-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 15px;
+  background-color: #e2e8f0;
+  color: #a0aec0;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.continue-button.active {
+  background-color: #667eea;
+  color: white;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+
+.continue-button.active:hover {
+  background-color: #5a67d8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(102, 126, 234, 0.4);
+}
+
+.button-icon {
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+}
+
+.continue-button.active:hover .button-icon {
+  transform: translateX(3px);
+}
+
+/* Logo animation */
+.logo-animation {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 30px;
+}
+
+.pulse-dot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #667eea;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 2px solid #667eea;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 2s ease-out infinite;
+  opacity: 0;
+}
+
+.pin-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  z-index: 3;
+  font-size: 1.2rem;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.7;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .location-card {
+    padding: 30px 20px;
+  }
+  
+  .welcome-title {
+    font-size: 1.8rem;
+  }
 }

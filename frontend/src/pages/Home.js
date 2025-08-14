@@ -1,82 +1,33 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { FiMusic, FiSun, FiExternalLink } from 'react-icons/fi';
+import "../styles/Home.css";
 
 const weatherIcons = {
   "broken clouds": "☁️",
   "clear sky": "☀️",
   "rain": "🌧️",
   "few clouds": "⛅",
-  // add more mappings as needed
 };
 
 const LoadingSpinner = () => (
-  <div style={{ textAlign: 'center', marginTop: 20 }}>
-    <div
-      className="spinner"
-      style={{
-        width: 40,
-        height: 40,
-        border: '5px solid #f3f3f3',
-        borderTop: '5px solid #1DB954',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-      }}
-    />
-    <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg);}
-        100% { transform: rotate(360deg);}
-      }
-    `}</style>
+  <div className="home-loading-container">
+    <div className="spinner"></div>
+    <p>Loading recommendations...</p>
   </div>
 );
 
 const SectionList = ({ title, items }) => (
-  <div style={{ marginBottom: 30 }}>
-    <h3
-      style={{
-        borderBottom: '3px solid #1DB954',
-        paddingBottom: 8,
-        color: '#176c2b', // darker green for subheading
-        fontWeight: '600',
-        fontSize: '22px',
-        marginBottom: 15,
-        textTransform: 'uppercase',
-        letterSpacing: '1.2px',
-      }}
-    >
-      {title}
-    </h3>
-    <ul
-      style={{
-        paddingLeft: 25,
-        color: '#333',
-        lineHeight: 1.7,
-        marginBottom: 15,
-        listStyleType: 'none',
-      }}
-    >
+  <div className="section-container">
+    <h3 className="section-title">{title}</h3>
+    <ul className="section-list">
       {items.map((item, i) => {
         const cleanItem = item.replace(/^\*+/, '').trim().replace(/^\.+/, '');
-        return (
-          <li
-            key={i}
-            style={{
-              marginBottom: 12,
-              fontSize: '17px',
-              color: '#444',
-            }}
-          >
-            {cleanItem}
-          </li>
-        );
+        return <li key={i} className="section-item">{cleanItem}</li>;
       })}
     </ul>
   </div>
 );
 
-
-
-// Parse AI suggestion string into sections and bullet points
 function parseAISuggestions(text) {
   const sections = {};
   const parts = text.split(/\*\*(.*?)\*\*/).filter(s => s.trim() !== '');
@@ -97,7 +48,7 @@ function parseAISuggestions(text) {
         if (currentItem !== null) {
           items.push(currentItem.trim());
         }
-        currentItem = trimmed.slice(2); // remove '* '
+        currentItem = trimmed.slice(2);
       } else if (trimmed === '') {
         // skip empty lines
       } else {
@@ -118,7 +69,6 @@ function parseAISuggestions(text) {
 
   return sections;
 }
-
 
 const Home = () => {
   const [location, setLocation] = useState('');
@@ -186,96 +136,67 @@ const Home = () => {
   }, [weatherData]);
 
   return (
-    <div
-      style={{
-        maxWidth: 700,
-        margin: 'auto',
-        padding: 20,
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        color: '#222',
-      }}
-    >
-      <h1 style={{ textAlign: 'center', marginBottom: 20 }}>Welcome to MindCue</h1>
+    <div className="home-container">
+      <div className="home-card">
+        <h1 className="home-title">Welcome to MindCue</h1>
 
-      {location ? (
-        <h2 style={{ textAlign: 'center', marginBottom: 30 }}>
-          Your selected city: <span style={{ color: '#1DB954' }}>{location}</span>
-        </h2>
-      ) : (
-        <p style={{ textAlign: 'center' }}>No city selected.</p>
-      )}
+        {location ? (
+          <h2 className="location-display">
+            Your selected city: <span>{location}</span>
+          </h2>
+        ) : (
+          <p className="no-location">No city selected.</p>
+        )}
 
-      {loading && <LoadingSpinner />}
+        {loading && <LoadingSpinner />}
 
-      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
-      {weatherData && !loading && !error && (
-        <div
-          style={{
-            border: '1px solid #ddd',
-            borderRadius: 12,
-            padding: 25,
-            backgroundColor: '#fafafa',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 15 }}>
-            <span style={{ fontSize: 48, marginRight: 15 }}>
-              {weatherIcons[weatherData.weather.toLowerCase()] || '❓'}
-            </span>
-            <div>
-              <p style={{ margin: 0, fontSize: 18, color: '#555' }}>
-                <strong>Weather Condition:</strong>
-              </p>
-              <p style={{ margin: 0, fontSize: 22, fontWeight: 'bold' }}>{weatherData.weather}</p>
+        {weatherData && !loading && !error && (
+          <div className="weather-recommendation-box">
+            <div className="weather-summary">
+              <span className="weather-icon">
+                {weatherIcons[weatherData.weather.toLowerCase()] || '❓'}
+              </span>
+              <div className="weather-details">
+                <p className="weather-condition">{weatherData.weather}</p>
+                <p className="weather-city">{location}</p>
+              </div>
+              <div className="temperature">
+                {weatherData.temperature.toFixed(1)}°C
+              </div>
             </div>
-            <div
-              style={{
-                marginLeft: 'auto',
-                fontSize: 32,
-                fontWeight: 'bold',
-                color: '#1DB954',
-              }}
-            >
-              {weatherData.temperature.toFixed(1)}°C
+
+            <div className="ai-suggestions">
+              <h2 className="suggestions-title">
+                <FiSun className="section-icon" />
+                AI Suggestions
+              </h2>
+
+              {parsedSuggestions ? (
+                Object.entries(parsedSuggestions).map(([section, items]) => (
+                  <SectionList key={section} title={section} items={items} />
+                ))
+              ) : (
+                <p>{weatherData.ai_suggestion}</p>
+              )}
             </div>
-          </div>
 
-          <div>
-            <h2
-              style={{
-                borderBottom: '3px solid #1DB954',
-                paddingBottom: 8,
-                marginBottom: 15,
-              }}
-            >
-              AI Suggestions
-            </h2>
-
-            {parsedSuggestions ? (
-              Object.entries(parsedSuggestions).map(([section, items]) => (
-                <SectionList key={section} title={section} items={items} />
-              ))
-            ) : (
-              <p>{weatherData.ai_suggestion}</p>
-            )}
-          </div>
-
-          {weatherData.playlist_link && (
-            <p style={{ marginTop: 30, fontSize: 18 }}>
-              <strong>Suggested Playlist: </strong>
+            {weatherData.playlist_link && (
               <a
                 href={weatherData.playlist_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: '#1DB954', textDecoration: 'none', fontWeight: 'bold' }}
+                className="playlist-link"
               >
-                🎵 {weatherData.playlist_keyword || 'Listen on Spotify'}
+                <FiMusic className="link-icon" />
+                {weatherData.playlist_keyword || 'Listen on Spotify'}
+                <FiExternalLink className="external-icon" />
               </a>
-            </p>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
