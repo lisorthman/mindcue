@@ -76,7 +76,7 @@ const LocationSelect = () => {
           <FiMapPin className="pin-icon" />
         </div>
         
-        <h1 className="welcome-title">Welcome to MindCue</h1>
+        <h1 className="welcome-title">Welcome to <span>MindCue</span></h1>
         <p className="welcome-subtitle">Select your location to personalize your experience</p>
 
         <div className={`search-container ${isFocused ? 'focused' : ''}`}>
@@ -84,7 +84,7 @@ const LocationSelect = () => {
             <FiMapPin className="search-icon" />
             <input
               type="text"
-              placeholder="Search for your city"
+              placeholder="Search for your city..."
               value={query}
               onChange={handleInputChange}
               onFocus={() => setIsFocused(true)}

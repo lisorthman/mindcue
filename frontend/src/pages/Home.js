@@ -12,17 +12,17 @@ const weatherIcons = {
 const LoadingSpinner = () => (
   <div className="home-loading-container">
     <div className="spinner"></div>
-    <p>Loading recommendations...</p>
+    <p className="loading-text">Loading recommendations...</p>
   </div>
 );
 
 const SectionList = ({ title, items }) => (
-  <div className="section-container">
+  <div className="section-container fade-in">
     <h3 className="section-title">{title}</h3>
     <ul className="section-list">
       {items.map((item, i) => {
         const cleanItem = item.replace(/^\*+/, '').trim().replace(/^\.+/, '');
-        return <li key={i} className="section-item">{cleanItem}</li>;
+        return <li key={i} className="section-item slide-up">{cleanItem}</li>;
       })}
     </ul>
   </div>
@@ -137,11 +137,11 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <div className="home-card">
-        <h1 className="home-title">Welcome to MindCue</h1>
+      <div className="home-card fade-in">
+        <h1 className="home-title">🌟 Welcome to MindCue</h1>
 
         {location ? (
-          <h2 className="location-display">
+          <h2 className="location-display slide-up">
             Your selected city: <span>{location}</span>
           </h2>
         ) : (
@@ -153,23 +153,23 @@ const Home = () => {
         {error && <p className="error-message">{error}</p>}
 
         {weatherData && !loading && !error && (
-          <div className="weather-recommendation-box">
+          <div className="weather-recommendation-box fade-in">
             <div className="weather-summary">
-              <span className="weather-icon">
+              <span className="weather-icon bounce">
                 {weatherIcons[weatherData.weather.toLowerCase()] || '❓'}
               </span>
               <div className="weather-details">
                 <p className="weather-condition">{weatherData.weather}</p>
                 <p className="weather-city">{location}</p>
               </div>
-              <div className="temperature">
+              <div className="temperature glow">
                 {weatherData.temperature.toFixed(1)}°C
               </div>
             </div>
 
             <div className="ai-suggestions">
               <h2 className="suggestions-title">
-                <FiSun className="section-icon" />
+                <FiSun className="section-icon spin" />
                 AI Suggestions
               </h2>
 
@@ -187,7 +187,7 @@ const Home = () => {
                 href={weatherData.playlist_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="playlist-link"
+                className="playlist-link pulse"
               >
                 <FiMusic className="link-icon" />
                 {weatherData.playlist_keyword || 'Listen on Spotify'}

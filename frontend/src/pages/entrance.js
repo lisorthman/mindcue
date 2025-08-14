@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiThermometer, FiDroplet, FiWind, FiCompass, FiHome } from "react-icons/fi";
+import {
+  FiThermometer,
+  FiDroplet,
+  FiWind,
+  FiCompass,
+  FiHome,
+} from "react-icons/fi";
 import "../styles/Entrance.css";
 
 const weatherIcons = {
@@ -51,20 +57,30 @@ const Entrance = () => {
     }
   };
 
-  if (!location) return <div className="entrance-message">Please select a location first.</div>;
+  if (!location)
+    return (
+      <div className="entrance-message">
+        Please select a location first.
+      </div>
+    );
 
-  if (loading) return (
-    <div className="loading-container">
-      <div className="spinner"></div>
-      <p>Loading weather data...</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="loading-screen">
+        <div className="loading-animation">
+          <div className="sun"></div>
+          <div className="cloud"></div>
+        </div>
+        <p className="loading-text">Loading weather data...</p>
+      </div>
+    );
 
   if (error) return <div className="error-message">{error}</div>;
   if (!weatherData) return null;
 
-  // Weather data variables
-  const weatherDesc = weatherData?.rawWeather?.weather?.[0]?.description || "N/A";
+  // Weather data
+  const weatherDesc =
+    weatherData?.rawWeather?.weather?.[0]?.description || "N/A";
   const weatherMain = weatherData?.rawWeather?.weather?.[0]?.main || "";
   const temp = weatherData?.rawWeather?.main?.temp;
   const feelsLike = weatherData?.rawWeather?.main?.feels_like;
@@ -77,10 +93,12 @@ const Entrance = () => {
   return (
     <div className="entrance-container">
       <div className="entrance-card">
-        <h1 className="weather-title">Weather in {cityName}</h1>
+        <h1 className="weather-title fade-in">
+          Weather in <span>{cityName}</span>
+        </h1>
 
-        <div className="weather-summary">
-          <span className="weather-icon">
+        <div className="weather-summary slide-up">
+          <span className="weather-icon bounce">
             {weatherIcons[weatherDesc.toLowerCase()] || "❓"}
           </span>
           <div className="weather-details">
@@ -96,7 +114,7 @@ const Entrance = () => {
           </div>
         </div>
 
-        <div className="weather-stats">
+        <div className="weather-stats fade-in">
           <div className="stat-item">
             <FiDroplet className="stat-icon" />
             <div>
@@ -127,8 +145,8 @@ const Entrance = () => {
           </div>
         </div>
 
-        <button 
-          className="recommendation-button"
+        <button
+          className="recommendation-button pulse"
           onClick={() => navigate("/home")}
         >
           <FiHome className="button-icon" />
