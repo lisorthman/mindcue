@@ -20,18 +20,22 @@ const weatherIcons = {
 const Entrance = () => {
   const [location, setLocation] = useState("");
   const [weatherData, setWeatherData] = useState(null);
+  const [newsData, setNewsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedLocation = localStorage.getItem("userLocation");
-    if (storedLocation) {
-      setLocation(storedLocation);
-      fetchWeather(storedLocation);
-    }
-  }, []);
+  const storedLocation = localStorage.getItem("userLocation");
+  if (storedLocation) {
+    setLocation(storedLocation);
+    fetchWeather(storedLocation);
+    fetchNews(); // now always fetches Sri Lanka news
+  }
+}, []);
 
+
+  // Fetch weather data
   const fetchWeather = async (loc) => {
     try {
       setLoading(true);
@@ -57,6 +61,28 @@ const Entrance = () => {
     }
   };
 
+
+// Fetch news data
+const fetchNews = async () => {
+  try {
+    const res = await fetch("http://localhost:9092/news");
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();  // no ": any"
+
+
+    // Only set if it's an array
+    setNewsData(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("News fetch error:", err);
+    setNewsData([]); // optional fallback
+  }
+};
+
+
   if (!location)
     return (
       <div className="entrance-message">
@@ -76,6 +102,9 @@ const Entrance = () => {
     );
 
   if (error) return <div className="error-message">{error}</div>;
+  if (!location) return <p>Please select a location first.</p>;
+  if (loading) return <p>Loading weather data...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!weatherData) return null;
 
   // Weather data
@@ -91,65 +120,168 @@ const Entrance = () => {
   const cityName = weatherData?.rawWeather?.name || weatherData?.city;
 
   return (
-    <div className="entrance-container">
-      <div className="entrance-card">
-        <h1 className="weather-title fade-in">
-          Weather in <span>{cityName}</span>
-        </h1>
+    <div className="entrance-wrapper">
+      <div className="entrance-container">
+      </div>
+        <div className="entrance-card">
+          <h1 className="weather-title fade-in">
+            Weather in <span>{cityName}</span>
+          </h1>
 
-        <div className="weather-summary slide-up">
-          <span className="weather-icon bounce">
+          <div className="weather-summary slide-up">
+            <span className="weather-icon bounce">
+              {weatherIcons[weatherDesc.toLowerCase()] || "❓"}
+            </span>
+            <div className="weather-details">
+              <p className="weather-condition">
+                {weatherMain} - {weatherDesc}
+              </p>
+              <p className="weather-feels-like">
+                Feels like: {feelsLike?.toFixed(1) ?? "N/A"} °C
+              </p>
+            </div>
+            <div className="weather-temp">
+              {temp !== undefined ? temp.toFixed(1) : "N/A"}°C
+            </div>
+          </div>
+      <div style={{ maxWidth: 700, margin: "auto", padding: 20 }}>
+        <h1>Weather in {cityName}</h1>
+
+        {/* WEATHER CARD */}
+        <div
+          style={{
+            border: "1px solid #ddd",
+            padding: 25,
+            borderRadius: 12,
+            backgroundColor: "#fafafa",
+            display: "flex",
+            alignItems: "center",
+            marginBottom: 20,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          }}
+        >
+          <span style={{ fontSize: 48, marginRight: 15 }}>
             {weatherIcons[weatherDesc.toLowerCase()] || "❓"}
           </span>
-          <div className="weather-details">
-            <p className="weather-condition">
+          <div>
+            <p style={{ margin: 0, fontSize: 18, color: "#555" }}>
+              <strong>Condition:</strong>
+            </p>
+            <p style={{ margin: 0, fontSize: 22, fontWeight: "bold" }}>
               {weatherMain} - {weatherDesc}
             </p>
-            <p className="weather-feels-like">
+            <p style={{ margin: 0, color: "#666" }}>
               Feels like: {feelsLike?.toFixed(1) ?? "N/A"} °C
             </p>
           </div>
-          <div className="weather-temp">
+          <div
+            style={{
+              marginLeft: "auto",
+              fontSize: 32,
+              fontWeight: "bold",
+              color: "#1DB954",
+            }}
+          >
             {temp !== undefined ? temp.toFixed(1) : "N/A"}°C
           </div>
         </div>
 
-        <div className="weather-stats fade-in">
-          <div className="stat-item">
-            <FiDroplet className="stat-icon" />
-            <div>
-              <p className="stat-label">Humidity</p>
-              <p className="stat-value">{humidity ?? "N/A"}%</p>
+          <div className="weather-stats fade-in">
+            <div className="stat-item">
+              <FiDroplet className="stat-icon" />
+              <div>
+                <p className="stat-label">Humidity</p>
+                <p className="stat-value">{humidity ?? "N/A"}%</p>
+              </div>
+            </div>
+            <div className="stat-item">
+              <FiThermometer className="stat-icon" />
+              <div>
+                <p className="stat-label">Pressure</p>
+                <p className="stat-value">{pressure ?? "N/A"} hPa</p>
+              </div>
+            </div>
+            <div className="stat-item">
+              <FiWind className="stat-icon" />
+              <div>
+                <p className="stat-label">Wind Speed</p>
+                <p className="stat-value">{windSpeed ?? "N/A"} m/s</p>
+              </div>
+            </div>
+            <div className="stat-item">
+              <FiCompass className="stat-icon" />
+              <div>
+                <p className="stat-label">Wind Direction</p>
+                <p className="stat-value">{windDeg ?? "N/A"}°</p>
+              </div>
             </div>
           </div>
-          <div className="stat-item">
-            <FiThermometer className="stat-icon" />
-            <div>
-              <p className="stat-label">Pressure</p>
-              <p className="stat-value">{pressure ?? "N/A"} hPa</p>
-            </div>
+        {/* WEATHER DETAILS */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            maxWidth: 400,
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <p>Humidity: {humidity ?? "N/A"}%</p>
+            <p>Pressure: {pressure ?? "N/A"} hPa</p>
           </div>
-          <div className="stat-item">
-            <FiWind className="stat-icon" />
-            <div>
-              <p className="stat-label">Wind Speed</p>
-              <p className="stat-value">{windSpeed ?? "N/A"} m/s</p>
-            </div>
-          </div>
-          <div className="stat-item">
-            <FiCompass className="stat-icon" />
-            <div>
-              <p className="stat-label">Wind Direction</p>
-              <p className="stat-value">{windDeg ?? "N/A"}°</p>
-            </div>
+          <div>
+            <p>Wind Speed: {windSpeed ?? "N/A"} m/s</p>
+            <p>Wind Direction: {windDeg ?? "N/A"}°</p>
           </div>
         </div>
 
+        {/* NEWS SECTION */}
+        <div style={{ marginTop: 30 }}>
+          <h2>Latest Sri Lanka News</h2>
+          {newsData.length > 0 ? (
+            <ul style={{ paddingLeft: 20 }}>
+              {newsData.map((article, index) => (
+                <li key={index} style={{ marginBottom: 10 }}>
+                  <a href={article.link ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#1DB954", fontWeight: "bold" }}
+                  >
+                    {article.title ?? "No title"}
+                  </a>
+                  <p style={{ margin: "5px 0", color: "#555" }}>
+                    {article.description}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No news found for this location.</p>
+          )}
+        </div>
+
+          <button
+            className="recommendation-button pulse"
+            onClick={() => navigate("/home")}
+          >
+            <FiHome className="button-icon" />
+            Auto Recommendation
+          </button>
+        </div>
         <button
-          className="recommendation-button pulse"
+          style={{
+            marginTop: 20,
+            padding: "10px 20px",
+            backgroundColor: "#1DB954",
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "600",
+            fontSize: 16,
+          }}
           onClick={() => navigate("/home")}
         >
-          <FiHome className="button-icon" />
           Auto Recommendation
         </button>
       </div>
