@@ -14,7 +14,7 @@ GEMINI_API_KEY = "AIzaSyDkv_75BW8OcH7rvPE1EctHAQCCEJObmIs"
 [[dependency]]
 org = "ballerina"
 name = "crypto"
-version = "1.6.1"
+version = "2.9.0"
 
 [[dependency]]
 org = "ballerina"

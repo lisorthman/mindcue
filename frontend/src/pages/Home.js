@@ -138,12 +138,12 @@ const Home = () => {
   return (
     <div className="home-container">
       <div className="home-card fade-in">
-        <h1 className="home-title">🌟 Welcome to MindCue</h1>
+        <h1 className="home-title">🌟 MindCue's got your back today</h1>
 
         {location ? (
-          <h2 className="location-display slide-up">
-            Your selected city: <span>{location}</span>
-          </h2>
+          <><h2 className="location-display slide-up">
+            Checking the skies over <span>{location}</span>
+          </h2><p> Let's see what's happening</p></>
         ) : (
           <p className="no-location">No city selected.</p>
         )}
@@ -170,7 +170,7 @@ const Home = () => {
             <div className="ai-suggestions">
               <h2 className="suggestions-title">
                 <FiSun className="section-icon spin" />
-                AI Suggestions
+                What might lift your spirits today?
               </h2>
 
               {parsedSuggestions ? (
