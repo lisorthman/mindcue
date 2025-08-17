@@ -25,34 +25,41 @@
 /* Logo pulse animation */
 .logo-animation {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 1.5rem;
 }
-.pulse-dot {
-  width: 16px;
-  height: 16px;
-  background: #6c63ff;
+
+/* Circle that holds pin */
+.pin-wrapper {
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  position: absolute;
-  top: 12px;
-  left: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   z-index: 2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+
+/* Pulse ring around the circle */
 .pulse-ring {
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
   border: 3px solid #6c63ff;
   border-radius: 50%;
   position: absolute;
-  top: 0;
-  left: 0;
   animation: pulse 1.5s infinite;
+  z-index: 1;
 }
+
+/* Icon inside circle */
 .pin-icon {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   color: #6c63ff;
-  position: relative;
-  z-index: 3;
 }
 
 /* Titles */

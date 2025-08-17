@@ -4,9 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(-45deg, #42a5f5, #6c63ff, #ff8c42, #42f584);
-  background-size: 400% 400%;
-  animation: gradientBG 12s ease infinite;
+  background-color: #42a5f5; /* Static blue background */
   font-family: "Poppins", sans-serif;
   padding: 2rem;
 }
@@ -148,11 +146,6 @@
 }
 
 /* Animations */
-@keyframes gradientBG {
-  0% {background-position: 0% 50%;}
-  50% {background-position: 100% 50%;}
-  100% {background-position: 0% 50%;}
-}
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
