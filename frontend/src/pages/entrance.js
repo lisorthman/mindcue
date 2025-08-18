@@ -164,7 +164,7 @@ const Entrance = () => {
 
         {/* NEWS SECTION */}
         <div className="news-section fade-in">
-          <h2>Latest Sri Lanka News</h2>
+          <h2>Latest News</h2>
           {newsData.length > 0 ? (
             <ul className="news-list">
               {newsData.map((article, index) => (

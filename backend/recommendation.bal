@@ -3,7 +3,7 @@ import ballerina/io;
 
 configurable string weather_base = "https://api.openweathermap.org/data/2.5";
 configurable string weather_key = "e4a3d04dc3699ab5d0a6b93bfcba7b83";
-configurable string GEMINI_API_KEY = "AIzaSyCa1w9FPEYTpSAM1XratpoOlcoH9eVFU0c";
+configurable string GEMINI_API_KEY = "AIzaSyAmLoB5vchgzhu44M6svzgHD_wmi5lBl-U";
 configurable string SPOTIFY_CLIENT_ID = "feae4f97b7984a78a6feca4d0464b947";
 configurable string SPOTIFY_CLIENT_SECRET = "8557780c00564669958c33d663358763";
 
@@ -367,7 +367,7 @@ function extractKeywordFromGeminiText(string text) returns string {
 }
 
 function getSriLankaNews() returns json|error {
-    string newsApiKey = "pub_596fef11078040f393bf7c135082fc5b";
+    string newsApiKey = "pub_f20d7ab5f7424db6a9212ac7fef7b7b7";
 
     http:Client newsClient = check new("https://newsdata.io/api/1");
 
@@ -470,5 +470,5 @@ function searchSpotifyPlaylist(string keyword, string token) returns string|erro
         }
     }
 
-    return "No playlist found"; 
+    return "https://open.spotify.com/playlist/3MmYXlR3mdDEshGy3Lr2pN?si=96c7fdba55d44976"; 
     }

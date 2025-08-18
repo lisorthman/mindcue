@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/io;
 
-configurable string news_api_key = "pub_596fef11078040f393bf7c135082fc5b";
+configurable string news_api_key = "pub_f20d7ab5f7424db6a9212ac7fef7b7b7";
 final string base_url = "https://newsdata.io/api/1";
 
 service / on new http:Listener(9092) {
