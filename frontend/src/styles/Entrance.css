@@ -261,6 +261,7 @@
 .loading-text {
   font-size: 1.2rem;
   font-weight: 500;
+  color: black;
   animation: fadeIn 1.5s infinite alternate;
 }
 

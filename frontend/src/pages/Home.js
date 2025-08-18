@@ -7,6 +7,7 @@ const weatherIcons = {
   "clear sky": "☀️",
   "rain": "🌧️",
   "few clouds": "⛅",
+  "overcast clouds": "🌥️", 
 };
 
 const LoadingSpinner = () => (
